@@ -1,0 +1,85 @@
+.cus-p p {
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: rgb(144, 143, 143);
+}
+
+.cus-p h5 {
+    font-size: 18px;
+}
+
+.cus-p #favicon img {
+    width: 30px;
+    margin-right: 8px;
+}
+
+.BookDetail {
+    display: flex;
+}
+
+.BookDetail #img {
+    order: 2;
+}
+
+.BookDetail #name {
+    order: 3;
+}
+
+.BookDetail #features {
+    order: 4;
+}
+
+.BookDetail #pay {
+    order: 1;
+}
+
+.BookDetail #infor {
+    order: 5;
+}
+
+.BookDetail #describ {
+    order: 6;
+}
+
+.cart:hover {
+    background: rgb(187, 224, 251) !important;
+}
+
+#icon:hover {
+    background: rgb(234, 234, 234) !important;
+}
+
+.divider:after,
+.divider:before {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+.h-custom {
+  height: calc(100% - 73px);
+}
+@media (max-width: 450px) {
+  .h-custom {
+    height: 100%;
+  }
+}
+
+.custom-modal {
+    display: block;
+    background-color: rgba(0,0,0,0.5);
+    overflow-y: auto;
+  }
+  
+  .custom-modal .modal-dialog {
+    margin: auto;
+    max-height: calc(100vh - 60px);
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - 60px);
+  }
+  
+  .custom-modal .modal-content {
+    overflow-y: auto;
+    max-height: calc(100vh - 60px);
+  }
