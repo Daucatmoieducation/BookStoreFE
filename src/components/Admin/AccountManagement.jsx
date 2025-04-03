@@ -1,54 +1,62 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
 
 const AccountManagement = () => {
     const [accounts, setAccounts] = useState([]);
-    const [newAccount, setNewAccount] = useState({ 
-        username: "", 
-        email: "", 
-        phone: "", 
-        password: "" 
-    });
+    const [newAccount, setNewAccount] = useState({ username: "", email: "", phone: "" });
     const [editingAccount, setEditingAccount] = useState(null);
-    const [showAddModal, setShowAddModal] = useState(false);
-
+    const beUrl = import.meta.env.VITE_APP_BE_URL;
     useEffect(() => {
-        // Fetch accounts from API (mock data for now)
-        setAccounts([
-            { id: 1, username: "user1", email: "user1@example.com", phone: "1234567890", password: "123456" },
-            { id: 2, username: "user2", email: "user2@example.com", phone: "0987654321", password: "123456" },
-        ]);
+        const fetchAccounts= async () => {
+            try {
+                const response = await axios.get(`${beUrl}/users`); // Fetch accounts from API
+                setAccounts(response.data);
+            } catch (error) {
+                console.error('Error fetching accounts:', error);
+            }
+        };
+        fetchAccounts();
     }, []);
 
-    const handleAddAccount = () => {
-        if (!newAccount.username || !newAccount.email || !newAccount.phone || !newAccount.password) {
-            alert("Vui lòng điền đầy đủ thông tin!");
+
+    
+
+    const handleAddAccount = async () => {
+        if (!newAccount.username || !newAccount.email || !newAccount.phone) {
+            alert("All fields are required!");
             return;
         }
-        setAccounts([...accounts, { ...newAccount, id: accounts.length + 1 }]);
-        setNewAccount({ username: "", email: "", phone: "", password: "" });
-        setShowAddModal(false);
+        try {
+            const response = await axios.post(`${beUrl}/users/register`, newAccount); // Add account via API
+            setAccounts([...accounts, response.data]);
+            setNewAccount({ username: "", email: "", phone: "" });
+        } catch (error) {
+            console.error('Error adding account:', error);
+        }
     };
 
-    const handleDeleteAccount = (id) => {
-        setAccounts(accounts.filter((account) => account.id !== id));
+    const handleDeleteAccount = async (id) => {
+        try {
+            await axios.delete(`${beUrl}/users/${id}`); // Delete account via API
+            setAccounts(accounts.filter(account => account.id !== id));
+        } catch (error) {
+            console.error('Error deleting account:', error);
+        }
     };
 
-    const handleEditAccount = (account) => {
-        setEditingAccount(account);
-    };
-
-    const handleUpdateAccount = () => {
-        if (!editingAccount.username || !editingAccount.email || !editingAccount.phone || !editingAccount.password) {
-            alert("Vui lòng điền đầy đủ thông tin!");
+    const handleUpdateAccount = async () => {
+        if (!editingAccount.username || !editingAccount.email || !editingAccount.phone) {
+            alert("All fields are required!");
             return;
         }
-        setAccounts(
-            accounts.map((account) =>
-                account.id === editingAccount.id ? editingAccount : account
-            )
-        );
-        setEditingAccount(null);
+        try {
+            const response = await axios.put(`${beUrl}/users/userId/${editingAccount.id}`, editingAccount); // Update account via API
+            setAccounts(accounts.map(account => account.id === editingAccount.id ? response.data : account));
+            setEditingAccount(null);
+        } catch (error) {
+            console.error('Error updating account:', error);
+        }
     };
 
     return (
@@ -65,13 +73,12 @@ const AccountManagement = () => {
                                 <th>Username</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th>Password</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {accounts.map((account) => (
-                                <tr key={account.id}>
+                                <tr key={account._id}>
                                     <td>{account.username}</td>
                                     <td>{account.email}</td>
                                     <td>{account.phone}</td>
@@ -79,7 +86,7 @@ const AccountManagement = () => {
                                     <td>
                                         <button
                                             className="btn btn-warning btn-sm me-2"
-                                            onClick={() => handleEditAccount(account)}
+                                            onClick={() => setEditingAccount(account)}
                                         >
                                             Sửa
                                         </button>

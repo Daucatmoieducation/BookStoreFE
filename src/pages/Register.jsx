@@ -69,6 +69,23 @@ const Register = () => {
           <Input placeholder='Nhập email của bạn' className='p-2' />
         </Form.Item>
         <Form.Item
+          label="Phone"
+          name="phone"
+          rules={[
+            {
+              required: true,
+              message: 'Vui lòng nhập số điện thoại của bạn!',
+            },
+            {
+              min: 10,
+              max: 11,
+              message: 'Vui lòng nhập số diện thoại hợp lệ!',
+            },
+          ]}
+        >
+          <Input placeholder='Nhập số điện thoại của bạn' className='p-2' />
+        </Form.Item>
+        <Form.Item
           label="Mật khẩu"
           name="password"
           rules={[
