@@ -19,7 +19,7 @@ function Header({ CartCount, onSearch }){
     } else {
       window.location.href = "/login"; 
     }
-    setShowAccountOptions(false); // Đóng menu khi nhấn
+    setShowAccountOptions(false);
   };
 
   return (

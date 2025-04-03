@@ -5,22 +5,23 @@ import { Form, Input, Button } from 'antd';
 
 const AccountManagement = () => {
     const [accounts, setAccounts] = useState([]);
-    const [editingAccount, setEditingAccount] = useState(null);
+    const [editingAccount, setNewAccount] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showUpModal, setShowUpModal] = useState(false);
     const beUrl = import.meta.env.VITE_APP_BE_URL;
     const [form] = Form.useForm();
     const [editForm] = Form.useForm();
+    const token = localStorage.getItem('accessToken');
 
+    const fetchAccounts = async () => {
+        try {
+            const response = await axios.get(`${beUrl}/users`); // Fetch accounts from API
+            setAccounts(response.data);
+        } catch (error) {
+            console.error('Error fetching accounts:', error);
+        }
+    };
     useEffect(() => {
-        const fetchAccounts = async () => {
-            try {
-                const response = await axios.get(`${beUrl}/users`); // Fetch accounts from API
-                setAccounts(response.data);
-            } catch (error) {
-                console.error('Error fetching accounts:', error);
-            }
-        };
         fetchAccounts();
     }, []);
 
@@ -29,6 +30,7 @@ const AccountManagement = () => {
             const response = await axios.post(`${beUrl}/users/register`, values); // Add account via API
             setAccounts([...accounts, response.data]);
             form.resetFields();
+            fetchAccounts(); // Reload the list
             setShowAddModal(false);
         } catch (error) {
             if (error.response && error.response.data && error.response.data.errors) {
@@ -47,8 +49,12 @@ const AccountManagement = () => {
 
     const handleDeleteAccount = async (id) => {
         try {
-            await axios.delete(`${beUrl}/users/${id}`); // Delete account via API
-            setAccounts(accounts.filter(account => account.id !== id));
+            await axios.delete(`${beUrl}/users/${id}`,{
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+            fetchAccounts(); // Reload the list
         } catch (error) {
             console.error('Error deleting account:', error);
         }
@@ -56,26 +62,17 @@ const AccountManagement = () => {
 
     const handleUpdateAccount = async (values) => {
         try {
-            const response = await axios.put(`${beUrl}/users/${editingAccount.id}`, values); // Update account via API
-            setAccounts((prevAccounts) =>
-                prevAccounts.map((account) =>
-                    account.id === editingAccount.id ? response.data : account
-                )
-            );
-            setEditingAccount(null);
+            await axios.put(`${beUrl}/users/${editingAccount.id}`, values,{
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            }); // Update account via API
+            fetchAccounts(); // Reload the list
+            setNewAccount(null);
             setShowUpModal(false); // Close the modal after updating
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.errors) {
-                const serverErrors = error.response.data.errors;
-                editForm.setFields(
-                    Object.keys(serverErrors).map((field) => ({
-                        name: field,
-                        errors: [serverErrors[field]],
-                    }))
-                );
-            } else {
-                alert("An error occurred while updating the account.");
-            }
+            console.error('Error updating account:', error);
+            alert("An error occurred while updating the account. Please try again later.");
         }
     };
 
@@ -98,7 +95,7 @@ const AccountManagement = () => {
                         </thead>
                         <tbody>
                             {accounts.map((account) => (
-                                <tr key={account.id}>
+                                <tr key={account._id}>
                                     <td>{account.username}</td>
                                     <td>{account.email}</td>
                                     <td>{account.phone}</td>
@@ -107,7 +104,12 @@ const AccountManagement = () => {
                                         <button
                                             className="btn btn-warning btn-sm me-2"
                                             onClick={() => {
-                                                setEditingAccount(account); // Set the account to be edited
+                                                setNewAccount({
+                                                    id: account._id,
+                                                    username: account.username,
+                                                    email: account.email,
+                                                    phone: account.phone,
+                                                }); // Set the account to be edited
                                                 editForm.setFieldsValue({
                                                     username: account.username,
                                                     email: account.email,
@@ -120,7 +122,7 @@ const AccountManagement = () => {
                                         </button>
                                         <button
                                             className="btn btn-danger btn-sm"
-                                            onClick={() => handleDeleteAccount(account.id)}
+                                            onClick={() => handleDeleteAccount(account._id)}
                                         >
                                             Xoá
                                         </button>

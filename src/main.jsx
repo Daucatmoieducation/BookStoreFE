@@ -12,6 +12,7 @@ import Dashboard from './components/Admin/AdminDashboard';
 import BookManagement from './components/Admin/BookManagement';
 import AccountManagement from './components/Admin/AccountManagement';
 import CategoryManagement from './components/Admin/CategoryManagement';
+import ProtectedRoute from './Context/ProtectedRoute.jsx'
 
 const routers = createBrowserRouter([
   {
@@ -44,15 +45,15 @@ const routers = createBrowserRouter([
   },
   {
     path:"/admin" ,
-    element: <Dashboard />,
+    element: <ProtectedRoute element={<Dashboard />}/>,
   },
   {
     path:"/admin/book-management" ,
-    element: <BookManagement />,
+    element: <ProtectedRoute element={<BookManagement />}/>,
   },
   {
     path:"/admin/account-management" ,
-    element: <AccountManagement />,
+    element: <ProtectedRoute element={<AccountManagement />}/>,
   }
 ])
 

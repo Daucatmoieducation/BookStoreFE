@@ -3,16 +3,18 @@ import Sidebar from './Sidebar';
 import BookManagement from './BookManagement';
 import AccountManagement from './AccountManagement';
 import CategoryManagement from './CategoryManagement';
-import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../../Context/UserContext';
+import { useContext } from 'react';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('books');
-    const navigate = useNavigate();
-
+    const { user, authenticated, logout } = useContext(UserContext);
     const handleLogout = () => {
-        // Xóa token/session nếu cần
-        localStorage.removeItem('authToken');
-        navigate('/');
+        if (authenticated) {
+            logout(); 
+        } else {
+            window.location.href = "/login"; 
+        }
     };
 
     const renderContent = () => {

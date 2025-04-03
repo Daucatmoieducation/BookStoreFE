@@ -6,6 +6,8 @@ const CategoryManagement = () => {
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState({ name: "", is_leaf: false });
     const [showAddModal, setShowAddModal] = useState(false);
+    const [editCategory, setEditCategory] = useState(null); // State for editing category
+    const [showEditModal, setShowEditModal] = useState(false); // State for showing edit modal
     const beUrl = import.meta.env.VITE_APP_BE_URL;
 
     const fetchCategories = async () => {
@@ -35,6 +37,23 @@ const CategoryManagement = () => {
         } catch (err) {
             console.error("Error adding category:", err);
             alert("Có lỗi xảy ra khi thêm danh mục!");
+        }
+    };
+
+    const handleEditCategory = async () => {
+        if (!editCategory.name) {
+            alert("Tên danh mục là bắt buộc!");
+            return;
+        }
+
+        try {
+            await axios.put(`${beUrl}/categories/${editCategory._id}`, editCategory); // Update category
+            setEditCategory(null);
+            setShowEditModal(false);
+            fetchCategories(); // Reload the list
+        } catch (err) {
+            console.error("Error editing category:", err);
+            alert("Có lỗi xảy ra khi chỉnh sửa danh mục!");
         }
     };
 
@@ -72,6 +91,15 @@ const CategoryManagement = () => {
                                     <td>{category.name}</td>
                                     <td>{category.is_leaf ? "Có" : "Không"}</td>
                                     <td>
+                                        <button
+                                            className="btn btn-warning btn-sm me-2"
+                                            onClick={() => {
+                                                setEditCategory(category);
+                                                setShowEditModal(true);
+                                            }}
+                                        >
+                                            Sửa
+                                        </button>
                                         <button
                                             className="btn btn-danger btn-sm"
                                             onClick={() =>
@@ -157,6 +185,73 @@ const CategoryManagement = () => {
                                     onClick={handleAddCategory}
                                 >
                                     Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Category Modal */}
+            {showEditModal && editCategory && (
+                <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog modal-dialog-centered">
+                        <div className="modal-content">
+                            <div className="modal-header bg-warning text-white">
+                                <h5 className="modal-title">Chỉnh sửa danh mục</h5>
+                                <button
+                                    type="button"
+                                    className="btn-close"
+                                    onClick={() => setShowEditModal(false)}
+                                ></button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="form-group mb-3">
+                                    <label>Tên danh mục</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Nhập tên danh mục"
+                                        value={editCategory.name}
+                                        onChange={(e) =>
+                                            setEditCategory({
+                                                ...editCategory,
+                                                name: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div className="form-group mb-3">
+                                    <label>Là danh mục lá</label>
+                                    <select
+                                        className="form-control"
+                                        value={editCategory.is_leaf}
+                                        onChange={(e) =>
+                                            setEditCategory({
+                                                ...editCategory,
+                                                is_leaf: e.target.value === "true",
+                                            })
+                                        }
+                                    >
+                                        <option value="true">Có</option>
+                                        <option value="false">Không</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    onClick={() => setShowEditModal(false)}
+                                >
+                                    Đóng
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-warning"
+                                    onClick={handleEditCategory}
+                                >
+                                    Lưu thay đổi
                                 </button>
                             </div>
                         </div>

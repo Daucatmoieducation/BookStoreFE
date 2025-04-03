@@ -7,11 +7,11 @@ import { UserContext } from '../Context/UserContext';
 const Login = () => {
     const [form] = Form.useForm();
     const nav = useNavigate();
-    const {login, authenticated} = useContext(UserContext)
+    const { login, authenticated, userRole } = useContext(UserContext);
 
     const onFinish = async (values) => {
         try {
-            await login(values); 
+            await login(values);
         } catch (error) {
             form.setFields([
                 {
@@ -28,7 +28,11 @@ const Login = () => {
     };
 
     if (authenticated) {
-        nav('/');  
+        if (userRole === 'Admin') {
+            nav('/admin');
+        } else {
+            nav('/');
+        }
     }
 
     return (

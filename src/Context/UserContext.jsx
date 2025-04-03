@@ -8,7 +8,7 @@ const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [authenticated, setAuthenticated] = useState(false);
     const beUrl = import.meta.env.VITE_APP_BE_URL;
-    
+
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         if (token) {
@@ -28,6 +28,8 @@ const UserProvider = ({ children }) => {
         }
     }, [beUrl]);
 
+    const userRole = user?.role || null; // Extract user role
+
     const logout = () => {
         localStorage.removeItem('accessToken');
         setUser(null);
@@ -39,7 +41,7 @@ const UserProvider = ({ children }) => {
             const res = await axios.post(`${beUrl}/users/login`, data);
             const token = res.data.accessToken;
             localStorage.setItem('accessToken', token);
-            
+
             const userRes = await axios.get(`${beUrl}/users/infor`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -52,7 +54,7 @@ const UserProvider = ({ children }) => {
     };
 
     return (
-        <UserContext.Provider value={{ user, authenticated, login, logout, setUser }}>
+        <UserContext.Provider value={{ user, authenticated, userRole, login, logout, setUser }}>
             {children}
         </UserContext.Provider>
     );

@@ -20,16 +20,16 @@ const BookManagement = () => {
 
     const beUrl = import.meta.env.VITE_APP_BE_URL;
 
+    const fetchBooks = async () => {
+        try {
+            const response = await axios.get(`${beUrl}/books`); // Fetch accounts from API
+            setBooks(response.data);
+            console.log(books)
+        } catch (error) {
+            console.error('Error fetching accounts:', error);
+        }
+    };
     useEffect(() => {
-        const fetchBooks = async () => {
-            try {
-                const response = await axios.get(`${beUrl}/books`); // Fetch accounts from API
-                setBooks(response.data);
-                console.log(books)
-            } catch (error) {
-                console.error('Error fetching accounts:', error);
-            }
-        };
         fetchBooks();
     }, []);
 
@@ -49,7 +49,7 @@ const BookManagement = () => {
                         slug: newBook.author.toLowerCase().replace(/\s+/g, '-')
                     }
                 ],
-                categories:     newBook.category,
+                categories: newBook.category,
                 description: newBook.description,
                 book_cover: newBook.bookCover,
                 list_price: newBook.price,
@@ -107,6 +107,7 @@ const BookManagement = () => {
                 price: '',
                 bookCover: ''
             });
+            fetchBooks(); // Cập nhật lại danh sách sách sau khi thêm
             setShowAddModal(false);
         } catch (error) {
             console.error('Error adding book:', error);
@@ -197,6 +198,7 @@ const BookManagement = () => {
                 price: '',
                 bookCover: ''
             });
+            fetchBooks(); // Refresh the book list after updating
             setShowAddModal(false);
         } catch (error) {
             console.error('Error updating book:', error);
@@ -394,7 +396,7 @@ const BookManagement = () => {
                     </div>
                 </div>
             )}
-              {showUpModal && (
+            {showUpModal && (
                 <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
                     <div className="modal-dialog modal-lg modal-dialog-centered">
                         <div className="modal-content">
