@@ -10,15 +10,15 @@ const CategoryManagement = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get(`${beUrl}/categories`);
-            setCategories(response.data);
+            const response = await axios.get(`${beUrl}/categories`); // Replace with your backend URL
+            setCategories(response.data); // Set the categories data
         } catch (err) {
             console.error("Error fetching categories:", err);
         }
     };
-    
+
     useEffect(() => {
-        fetchCategories(); // Gọi API khi component mount
+        fetchCategories();
     }, []);
 
     const handleAddCategory = async () => {
@@ -28,11 +28,10 @@ const CategoryManagement = () => {
         }
 
         try {
-            const response = await axios.post(`${beUrl}/categories`, newCategory); // Replace with your backend URL
-            setCategories([...categories, response.data]); // Add the new category from the response
+            await axios.post(`${beUrl}/categories`, newCategory); // Replace with your backend URL
             setNewCategory({ name: "", is_leaf: false });
             setShowAddModal(false);
-            fetchCategories(); // Refresh the categories list
+            fetchCategories(); // Reload the list
         } catch (err) {
             console.error("Error adding category:", err);
             alert("Có lỗi xảy ra khi thêm danh mục!");
@@ -41,8 +40,8 @@ const CategoryManagement = () => {
 
     const handleDeleteCategory = async (id) => {
         try {
-            await axios.delete(`${beUrl}/categories/${id}`);
-            setCategories(categories.filter((category) => category.id !== id));
+            await axios.delete(`${beUrl}/categories/${id}`); // Replace with your backend URL
+            fetchCategories(); // Reload the list
         } catch (err) {
             console.error("Error deleting category:", err);
             alert("Có lỗi xảy ra khi xoá danh mục!");
@@ -52,7 +51,7 @@ const CategoryManagement = () => {
     return (
         <div className="container mt-5">
 
-            
+
             {/* Category List */}
             <div className="card shadow mb-4">
                 <div className="card-header bg-primary text-white">

@@ -9,8 +9,8 @@ const useFilter = (books) => {
         let seenSeller = new Set();
 
         books.forEach(book => {
-            if (book.categories && book.categories.name) {
-                seenCat.add(book.categories.name);
+            if (book.categories) {
+                seenCat.add(book.categories);
             }
             if (book.current_seller && book.current_seller.name) {
                 seenSeller.add(book.current_seller.name);

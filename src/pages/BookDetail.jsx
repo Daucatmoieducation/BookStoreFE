@@ -14,7 +14,12 @@ function BookDetail() {
     const [book, setBook] = useState(null); // State to store book data
     const [loading, setLoading] = useState(true); // State to handle loading
     const [error, setError] = useState(null); // State to handle errors
+    const [CartCount, SetCartCount] = useState(0); // Cart state
     const beUrl = import.meta.env.VITE_APP_BE_URL; // Backend URL
+
+    const AddToCart = () => {
+        SetCartCount(CartCount + 1);
+    };
 
     useEffect(() => {
         const fetchBook = async () => {
@@ -39,13 +44,6 @@ function BookDetail() {
     if (error) {
         return <div>{error}</div>;
     }
-
-    const [CartCount, SetCartCount] = useState(0); // Cart state
-    const AddToCart = () => {
-        SetCartCount(CartCount + 1);
-    };
-
-    
 
     return (
         <>

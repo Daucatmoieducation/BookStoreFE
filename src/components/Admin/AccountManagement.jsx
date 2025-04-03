@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
+import { Form, Input, Button } from 'antd';
 
 const AccountManagement = () => {
     const [accounts, setAccounts] = useState([]);
-    const [newAccount, setNewAccount] = useState({ username: "", email: "", phone: "" });
     const [editingAccount, setEditingAccount] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showUpModal, setShowUpModal] = useState(false);
     const beUrl = import.meta.env.VITE_APP_BE_URL;
+    const [form] = Form.useForm();
+    const [editForm] = Form.useForm();
+
     useEffect(() => {
-        const fetchAccounts= async () => {
+        const fetchAccounts = async () => {
             try {
                 const response = await axios.get(`${beUrl}/users`); // Fetch accounts from API
                 setAccounts(response.data);
@@ -20,20 +24,24 @@ const AccountManagement = () => {
         fetchAccounts();
     }, []);
 
-
-    
-
-    const handleAddAccount = async () => {
-        if (!newAccount.username || !newAccount.email || !newAccount.phone) {
-            alert("All fields are required!");
-            return;
-        }
+    const handleAddAccount = async (values) => {
         try {
-            const response = await axios.post(`${beUrl}/users/register`, newAccount); // Add account via API
+            const response = await axios.post(`${beUrl}/users/register`, values); // Add account via API
             setAccounts([...accounts, response.data]);
-            setNewAccount({ username: "", email: "", phone: "" });
+            form.resetFields();
+            setShowAddModal(false);
         } catch (error) {
-            console.error('Error adding account:', error);
+            if (error.response && error.response.data && error.response.data.errors) {
+                const serverErrors = error.response.data.errors;
+                form.setFields(
+                    Object.keys(serverErrors).map((field) => ({
+                        name: field,
+                        errors: [serverErrors[field]],
+                    }))
+                );
+            } else {
+                alert("An error occurred while adding the account.");
+            }
         }
     };
 
@@ -46,17 +54,28 @@ const AccountManagement = () => {
         }
     };
 
-    const handleUpdateAccount = async () => {
-        if (!editingAccount.username || !editingAccount.email || !editingAccount.phone) {
-            alert("All fields are required!");
-            return;
-        }
+    const handleUpdateAccount = async (values) => {
         try {
-            const response = await axios.put(`${beUrl}/users/userId/${editingAccount.id}`, editingAccount); // Update account via API
-            setAccounts(accounts.map(account => account.id === editingAccount.id ? response.data : account));
+            const response = await axios.put(`${beUrl}/users/${editingAccount.id}`, values); // Update account via API
+            setAccounts((prevAccounts) =>
+                prevAccounts.map((account) =>
+                    account.id === editingAccount.id ? response.data : account
+                )
+            );
             setEditingAccount(null);
+            setShowUpModal(false); // Close the modal after updating
         } catch (error) {
-            console.error('Error updating account:', error);
+            if (error.response && error.response.data && error.response.data.errors) {
+                const serverErrors = error.response.data.errors;
+                editForm.setFields(
+                    Object.keys(serverErrors).map((field) => ({
+                        name: field,
+                        errors: [serverErrors[field]],
+                    }))
+                );
+            } else {
+                alert("An error occurred while updating the account.");
+            }
         }
     };
 
@@ -79,7 +98,7 @@ const AccountManagement = () => {
                         </thead>
                         <tbody>
                             {accounts.map((account) => (
-                                <tr key={account._id}>
+                                <tr key={account.id}>
                                     <td>{account.username}</td>
                                     <td>{account.email}</td>
                                     <td>{account.phone}</td>
@@ -87,7 +106,15 @@ const AccountManagement = () => {
                                     <td>
                                         <button
                                             className="btn btn-warning btn-sm me-2"
-                                            onClick={() => setEditingAccount(account)}
+                                            onClick={() => {
+                                                setEditingAccount(account); // Set the account to be edited
+                                                editForm.setFieldsValue({
+                                                    username: account.username,
+                                                    email: account.email,
+                                                    phone: account.phone,
+                                                }); // Pre-fill the form with account details
+                                                setShowUpModal(true);
+                                            }}
                                         >
                                             Sửa
                                         </button>
@@ -129,70 +156,99 @@ const AccountManagement = () => {
                                 ></button>
                             </div>
                             <div className="modal-body">
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Username</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Username"
-                                        value={newAccount.username}
-                                        onChange={(e) =>
-                                            setNewAccount({ ...newAccount, username: e.target.value })
-                                        }
-                                    />
-                                </div>
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Email</label>
-                                    <input
-                                        type="email"
-                                        className="form-control"
-                                        placeholder="Email"
-                                        value={newAccount.email}
-                                        onChange={(e) =>
-                                            setNewAccount({ ...newAccount, email: e.target.value })
-                                        }
-                                    />
-                                </div>
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Số điện thoại</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Phone"
-                                        value={newAccount.phone}
-                                        onChange={(e) =>
-                                            setNewAccount({ ...newAccount, phone: e.target.value })
-                                        }
-                                    />
-                                </div>
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Password</label>
-                                    <input
-                                        type="text" 
-                                        className="form-control"
-                                        placeholder="Password"
-                                        value={newAccount.password}
-                                        onChange={(e) =>
-                                            setNewAccount({ ...newAccount, password: e.target.value })
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={() => setShowAddModal(false)}
+                                <Form
+                                    form={form}
+                                    onFinish={handleAddAccount}
+                                    layout="vertical"
+                                    className="bg-white w-[400px] p-5 rounded-lg"
                                 >
-                                    Đóng
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-success"
-                                    onClick={handleAddAccount}
-                                >
-                                    Thêm
-                                </button>
+                                    <Form.Item
+                                        label="Họ và tên"
+                                        name="username"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập tên của bạn!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input placeholder="Nhập tên của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Email"
+                                        name="email"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập email của bạn!',
+                                            },
+                                            {
+                                                type: 'email',
+                                                message: 'Vui lòng nhập một địa chỉ email hợp lệ!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input placeholder="Nhập email của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Phone"
+                                        name="phone"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập số điện thoại của bạn!',
+                                            },
+                                            {
+                                                min: 10,
+                                                max: 11,
+                                                message: 'Vui lòng nhập số diện thoại hợp lệ!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input placeholder="Nhập số điện thoại của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Mật khẩu"
+                                        name="password"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập mật khẩu của bạn!',
+                                            },
+                                            {
+                                                min: 6,
+                                                message: 'Mật khẩu phải có ít nhất 6 ký tự!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input.Password placeholder="Nhập mật khẩu của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        name="confirm"
+                                        label="Xác nhận mật khẩu"
+                                        dependencies={['password']}
+                                        hasFeedback
+                                        className="mb-10"
+                                        rules={[
+                                            { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                                            ({ getFieldValue }) => ({
+                                                validator(_, value) {
+                                                    if (!value || getFieldValue('password') === value) {
+                                                        return Promise.resolve();
+                                                    }
+                                                    return Promise.reject(new Error('Mật khẩu không khớp!'));
+                                                },
+                                            }),
+                                        ]}
+                                    >
+                                        <Input.Password className="p-2" placeholder="Xác nhận mật khẩu" />
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button type="primary" htmlType="submit" className="w-full py-4">
+                                            Thêm
+                                        </Button>
+                                    </Form.Item>
+                                </Form>
                             </div>
                         </div>
                     </div>
@@ -200,7 +256,7 @@ const AccountManagement = () => {
             )}
 
             {/* Modal Chỉnh sửa tài khoản */}
-            {editingAccount && (
+            {showUpModal && (
                 <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
                     <div className="modal-dialog">
                         <div className="modal-content">
@@ -209,86 +265,72 @@ const AccountManagement = () => {
                                 <button
                                     type="button"
                                     className="btn-close"
-                                    onClick={() => setEditingAccount(null)}
+                                    onClick={() => setShowUpModal(false)}
                                 ></button>
                             </div>
                             <div className="modal-body">
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Username</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Username"
-                                        value={editingAccount.username}
-                                        onChange={(e) =>
-                                            setEditingAccount({
-                                                ...editingAccount,
-                                                username: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Email</label>
-                                    <input
-                                        type="email"
-                                        className="form-control"
-                                        placeholder="Email"
-                                        value={editingAccount.email}
-                                        onChange={(e) =>
-                                            setEditingAccount({
-                                                ...editingAccount,
-                                                email: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Số điện thoại</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Phone"
-                                        value={editingAccount.phone}
-                                        onChange={(e) =>
-                                            setEditingAccount({
-                                                ...editingAccount,
-                                                phone: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-                                <div className="form-group mb-3">
-                                    <label className="form-label">Password</label>
-                                    <input
-                                        type="text"  // Hiển thị password dạng text để dễ chỉnh sửa
-                                        className="form-control"
-                                        placeholder="Password"
-                                        value={editingAccount.password}
-                                        onChange={(e) =>
-                                            setEditingAccount({
-                                                ...editingAccount,
-                                                password: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    type="button"
-                                    className="btn btn-secondary"
-                                    onClick={() => setEditingAccount(null)}
+                                <Form
+                                    form={editForm}
+                                    onFinish={handleUpdateAccount}
+                                    layout="vertical"
+                                    initialValues={{
+                                        username: editingAccount.username,
+                                        email: editingAccount.email,
+                                        phone: editingAccount.phone,
+                                    }}
+                                    className="bg-white w-[400px] p-5 rounded-lg"
                                 >
-                                    Hủy
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-warning"
-                                    onClick={handleUpdateAccount}
-                                >
-                                    Cập nhật
-                                </button>
+                                    <Form.Item
+                                        label="Họ và tên"
+                                        name="username"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập tên của bạn!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input placeholder="Nhập tên của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Email"
+                                        name="email"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập email của bạn!',
+                                            },
+                                            {
+                                                type: 'email',
+                                                message: 'Vui lòng nhập một địa chỉ email hợp lệ!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input placeholder="Nhập email của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item
+                                        label="Phone"
+                                        name="phone"
+                                        rules={[
+                                            {
+                                                required: true,
+                                                message: 'Vui lòng nhập số điện thoại của bạn!',
+                                            },
+                                            {
+                                                min: 10,
+                                                max: 11,
+                                                message: 'Vui lòng nhập số diện thoại hợp lệ!',
+                                            },
+                                        ]}
+                                    >
+                                        <Input placeholder="Nhập số điện thoại của bạn" className="p-2" />
+                                    </Form.Item>
+                                    <Form.Item>
+                                        <Button type="primary" htmlType="submit" className="w-full py-4 justify-center">
+                                            Cập nhật
+                                        </Button>
+                                    </Form.Item>
+                                </Form>
                             </div>
                         </div>
                     </div>
