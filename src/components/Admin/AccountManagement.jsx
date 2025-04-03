@@ -6,6 +6,7 @@ const AccountManagement = () => {
     const [accounts, setAccounts] = useState([]);
     const [newAccount, setNewAccount] = useState({ username: "", email: "", phone: "" });
     const [editingAccount, setEditingAccount] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
     const beUrl = import.meta.env.VITE_APP_BE_URL;
     useEffect(() => {
         const fetchAccounts= async () => {
@@ -61,7 +62,6 @@ const AccountManagement = () => {
 
     return (
         <div className="container mt-5">
-            {/* Account List - Hiển thị password thực */}
             <div className="card mb-4">
                 <div className="card-header bg-primary text-white">
                     <h3 className="mb-0">Danh sách tài khoản</h3>
@@ -73,6 +73,7 @@ const AccountManagement = () => {
                                 <th>Username</th>
                                 <th>Email</th>
                                 <th>Phone</th>
+                                <th>Password</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -82,7 +83,7 @@ const AccountManagement = () => {
                                     <td>{account.username}</td>
                                     <td>{account.email}</td>
                                     <td>{account.phone}</td>
-                                    <td>{account.password}</td> {/* Hiển thị password thực */}
+                                    <td>{account.password}</td>
                                     <td>
                                         <button
                                             className="btn btn-warning btn-sm me-2"
@@ -167,7 +168,7 @@ const AccountManagement = () => {
                                 <div className="form-group mb-3">
                                     <label className="form-label">Password</label>
                                     <input
-                                        type="text"  // Hiển thị password dạng text để dễ chỉnh sửa
+                                        type="text" 
                                         className="form-control"
                                         placeholder="Password"
                                         value={newAccount.password}
