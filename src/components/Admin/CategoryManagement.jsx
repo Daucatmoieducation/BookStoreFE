@@ -1,34 +1,52 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import axios from "axios";
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState([]);
     const [newCategory, setNewCategory] = useState({ name: "", is_leaf: false });
     const [showAddModal, setShowAddModal] = useState(false);
+    const beUrl = import.meta.env.VITE_APP_BE_URL;
 
+    const fetchCategories = async () => {
+        try {
+            const response = await axios.get(`${beUrl}/categories`);
+            setCategories(response.data);
+        } catch (err) {
+            console.error("Error fetching categories:", err);
+        }
+    };
+    
     useEffect(() => {
-        // Fetch categories from API (mock data for now)
-        setCategories([
-            { id: 1, name: "Category 1", is_leaf: true },
-            { id: 2, name: "Category 2", is_leaf: false },
-        ]);
+        fetchCategories(); // Gọi API khi component mount
     }, []);
 
-    const handleAddCategory = () => {
+    const handleAddCategory = async () => {
         if (!newCategory.name) {
             alert("Tên danh mục là bắt buộc!");
             return;
         }
-        setCategories([
-            ...categories,
-            { ...newCategory, id: categories.length + 1 },
-        ]);
-        setNewCategory({ name: "", is_leaf: false });
-        setShowAddModal(false);
+
+        try {
+            const response = await axios.post(`${beUrl}/categories`, newCategory); // Replace with your backend URL
+            setCategories([...categories, response.data]); // Add the new category from the response
+            setNewCategory({ name: "", is_leaf: false });
+            setShowAddModal(false);
+            fetchCategories(); // Refresh the categories list
+        } catch (err) {
+            console.error("Error adding category:", err);
+            alert("Có lỗi xảy ra khi thêm danh mục!");
+        }
     };
 
-    const handleDeleteCategory = (id) => {
-        setCategories(categories.filter((category) => category.id !== id));
+    const handleDeleteCategory = async (id) => {
+        try {
+            await axios.delete(`${beUrl}/categories/${id}`);
+            setCategories(categories.filter((category) => category.id !== id));
+        } catch (err) {
+            console.error("Error deleting category:", err);
+            alert("Có lỗi xảy ra khi xoá danh mục!");
+        }
     };
 
     return (
@@ -51,14 +69,14 @@ const CategoryManagement = () => {
                         </thead>
                         <tbody>
                             {categories.map((category) => (
-                                <tr key={category.id}>
+                                <tr key={category._id}>
                                     <td>{category.name}</td>
                                     <td>{category.is_leaf ? "Có" : "Không"}</td>
                                     <td>
                                         <button
                                             className="btn btn-danger btn-sm"
                                             onClick={() =>
-                                                handleDeleteCategory(category.id)
+                                                handleDeleteCategory(category._id)
                                             }
                                         >
                                             Xoá
